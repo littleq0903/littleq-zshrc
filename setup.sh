@@ -1,4 +1,4 @@
 git submodule update --init
 
-ln -s github/littleq-zshrc/.zshrc $HOME
-ln -s github/littleq-zshrc/.virtualenv.zsh $HOME
+ln -s `dirname $0`/.zshrc $HOME
+ln -s `dirname $0`/.virtualenv.zsh $HOME
