@@ -2,8 +2,8 @@
 source $HOME/.profile
 
 # Libraries
-source ~/github/littleq-zshrc/.virtualenv.zsh
-source ~/github/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/github/littleq-settings/littleq-zshrc/.virtualenv.zsh
+source ~/github/littleq-settings/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 httpserver () {
@@ -217,7 +217,7 @@ zstyle ':completion:*:descriptions' format $'\e[01;33m -- %d --\e[0m'
 zstyle ':completion:*:messages' format $'\e[01;35m -- ^_^y %d --\e[0m'
 zstyle ':completion:*:warnings' format $'\e[01;31m -- O_O! No Matches Found --\e[0m'
 
-#命令别名
+# General aliases
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
@@ -508,8 +508,13 @@ update_battery_info() {
     ## Getting Battery Info
 
     # Battery info
-    [[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
-    [[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+    #[[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
+    #[[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+
+    # Battery info
+    [[ "`cat /sys/class/power_supply/battery/current_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
+    PR_BATTERY=$PR_BATTERY."\%"
+    PR_CHARGING_STATUS=charged
 
     # battery color
     PR_BATTERY_COLOR=${PR_RED}
@@ -527,7 +532,7 @@ setprompt
 
 # Startup messages
 show_info
-task
+#task
 
 # added by travis gem
 [ -f /Users/littleq/.travis/travis.sh ] && source /Users/littleq/.travis/travis.sh
