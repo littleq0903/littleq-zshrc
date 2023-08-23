@@ -4,11 +4,16 @@ source $HOME/.profile
 # Libraries
 source ~/github/littleq-settings/littleq-zshrc/.virtualenv.zsh
 source ~/github/littleq-settings/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+alias dircolors=gdircolors
+PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
+PATH="/opt/homebrew/bin:$PATH"
 
+
+MACHINE_OS=${MACHINE_OS:-macosx}
 
 httpserver () {
     sleep 1 && open "http://localhost:$1/" &
-    python -m SimpleHTTPServer $1 ${@:2}
+    python3 -m SimpleHTTPServer $1 ${@:2}
 }
 
 clip_code (){
@@ -157,6 +162,7 @@ zstyle ':completion:predict:*' completer _complete
 zstyle ':completion:incremental:*' completer _complete _correct
 zstyle ':completion:*' completer _complete _prefix _correct _prefix _match _approximate
 zstyle ':completion:*' verbose true
+zstyle ':completion:*' insecure-directories ''
 
 # Path Expansion
 zstyle ':completion:*' expand-or-complete 'yes'
@@ -177,8 +183,8 @@ else
 fi
 
 # GNU Colors 需要/etc/DIR_COLORS文件 否则自动补全时候选菜单中的选项不能彩色显示
-#[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b /etc/DIR_COLORS)
-#[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b)
+[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b /etc/DIR_COLORS)
+[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b)
 
 
 fpath=($HOME/Dropbox/portableLibraries/zsh/completion $fpath)
@@ -286,8 +292,8 @@ function precmd {
     local promptsize=${#${(%):---(%m@%n:%l)()--}}
     local pwdpath=${(%):-%~}
 
-    local pwdsize_unicode=`python -c "print len('$pwdpath')"`
-    local chinesechar_size=`python -c "import re; print len(''.join(re.findall(ur'[\\u4e00-\\u9fff]+', '$pwdpath'.decode('utf-8'))))"`
+    local pwdsize_unicode="${#pwdpath}"
+    local chinesechar_size=$(echo "$pwdpath" | grep -oP "[\x{4e00}-\x{9fff}]" | wc -l)
 
     # chinese will be treat as 3 times as length of normal charactor
     let "pwdsize = $pwdsize_unicode - $chinesechar_size"
@@ -536,3 +542,6 @@ show_info
 
 # added by travis gem
 [ -f /Users/littleq/.travis/travis.sh ] && source /Users/littleq/.travis/travis.sh
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
