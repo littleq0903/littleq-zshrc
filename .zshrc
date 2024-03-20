@@ -6,9 +6,11 @@ source ~/github/littleq-settings/littleq-zshrc/.virtualenv.zsh
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
+MACHINE_OS=${MACHINE_OS:-macosx}
+
 httpserver () {
     sleep 1 && open "http://localhost:$1/" &
-    python -m SimpleHTTPServer $1 ${@:2}
+    python3 -m SimpleHTTPServer $1 ${@:2}
 }
 
 clip_code (){
@@ -157,6 +159,7 @@ zstyle ':completion:predict:*' completer _complete
 zstyle ':completion:incremental:*' completer _complete _correct
 zstyle ':completion:*' completer _complete _prefix _correct _prefix _match _approximate
 zstyle ':completion:*' verbose true
+zstyle ':completion:*' insecure-directories ''
 
 # Path Expansion
 zstyle ':completion:*' expand-or-complete 'yes'
@@ -177,8 +180,8 @@ else
 fi
 
 # GNU Colors 需要/etc/DIR_COLORS文件 否则自动补全时候选菜单中的选项不能彩色显示
-#[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b /etc/DIR_COLORS)
-#[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b)
+[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b /etc/DIR_COLORS)
+[ -f /etc/DIR_COLORS ] && eval $(gdircolors -b)
 
 
 fpath=($HOME/Dropbox/portableLibraries/zsh/completion $fpath)
@@ -249,6 +252,12 @@ if [ $MACHINE_OS = "ubuntu" ]; then
     alias ls="ls --color"
 fi
 
+if [ $MACHINE_OS = "macosx" ]; then
+    alias dircolors=gdircolors
+    PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
+    PATH="/opt/homebrew/bin:$PATH"
+fi
+
 #路径别名 进入相应的路径时只要 cd ~xxx
 hash -d download="$HOME/Downloads"
 hash -d dropbox="$HOME/Dropbox"
@@ -286,8 +295,8 @@ function precmd {
     local promptsize=${#${(%):---(%m@%n:%l)()--}}
     local pwdpath=${(%):-%~}
 
-    local pwdsize_unicode=`python -c "print(len('$pwdpath'))"`
-    local chinesechar_size=`python -c "import re; print(len(''.join(re.findall(r'[\\u4e00-\\u9fff]+', '$pwdpath'))))"`
+    local pwdsize_unicode="${#pwdpath}"
+    local chinesechar_size=$(echo "$pwdpath" | grep -q -oP "[\x4e\x00-\x9f\xff]" | wc -l)
 
     # chinese will be treat as 3 times as length of normal charactor
     let "pwdsize = $pwdsize_unicode - $chinesechar_size"
@@ -507,9 +516,22 @@ show_info () {
 update_battery_info() {
     ## Getting Battery Info
 
-    # Battery info
-    #[[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
-    #[[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+    # Battery info for Mac OS X
+    if [ $MACHINE_OS = "macosx" ]; then
+        [[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
+        [[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+    fi
+
+    # Battery info for ubuntu
+    if [ $MACHINE_OS = "ubuntu" ]; then
+        if [ -d "/sys/class/power_supply/battery" ]; then
+            [[ "`cat /sys/class/power_supply/battery/current_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
+            PR_BATTERY=$PR_BATTERY."\%"
+            PR_CHARGING_STATUS=charged
+        else
+            PR_CHARGING_STATUS=NoBattery
+        fi
+    fi
 
     # Battery info
     #[[ "`cat /sys/class/power_supply/battery/current_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
@@ -527,8 +549,10 @@ update_battery_info() {
     [[ $PR_BATTERY_INFO -gt "95" ]] && PR_BATTERY_COLOR=${PR_GREEN}
 
     [[ $PR_CHARGING_STATUS == "charged" ]] && PR_CHARGING_STATUS_COLOR=${PR_GREEN}
+    [[ $PR_CHARGING_STATUS == "finishing charge" ]] && PR_CHARGING_STATUS_COLOR=${PR_GREEN}
     [[ $PR_CHARGING_STATUS == "charging" ]] && PR_CHARGING_STATUS_COLOR=${PR_YELLOW}
     [[ $PR_CHARGING_STATUS == "discharging" ]] && PR_CHARGING_STATUS_COLOR=${PR_RED}
+    [[ $PR_CHARGING_STATUS == "NoBattery" ]] && PR_CHARGING_STATUS_COLOR=${PR_RED}
 }
 
 # start prompt
@@ -540,3 +564,6 @@ show_info
 
 # added by travis gem
 [ -f /Users/littleq/.travis/travis.sh ] && source /Users/littleq/.travis/travis.sh
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
