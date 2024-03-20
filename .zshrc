@@ -3,7 +3,7 @@ source $HOME/.profile
 
 # Libraries
 source ~/github/littleq-settings/littleq-zshrc/.virtualenv.zsh
-source ~/github/littleq-settings/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 httpserver () {
@@ -286,8 +286,8 @@ function precmd {
     local promptsize=${#${(%):---(%m@%n:%l)()--}}
     local pwdpath=${(%):-%~}
 
-    local pwdsize_unicode=`python -c "print len('$pwdpath')"`
-    local chinesechar_size=`python -c "import re; print len(''.join(re.findall(ur'[\\u4e00-\\u9fff]+', '$pwdpath'.decode('utf-8'))))"`
+    local pwdsize_unicode=`python -c "print(len('$pwdpath'))"`
+    local chinesechar_size=`python -c "import re; print(len(''.join(re.findall(r'[\\u4e00-\\u9fff]+', '$pwdpath'))))"`
 
     # chinese will be treat as 3 times as length of normal charactor
     let "pwdsize = $pwdsize_unicode - $chinesechar_size"
@@ -512,7 +512,11 @@ update_battery_info() {
     #[[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
 
     # Battery info
-    [[ "`cat /sys/class/power_supply/battery/current_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
+    #[[ "`cat /sys/class/power_supply/battery/current_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
+    [[ "`cat /sys/class/power_supply/BAT1/power_now | tr -d "\n"`" =~ '([0-9]+)' ]] && PR_BATTERY_INFO=$match[1]
+
+    [[ -n $WSL_DISTRO_NAME ]] && PR_BATTERY_INFO=$(powershell.exe -Command "(Get-WmiObject Win32_Battery).EstimatedChargeRemaining" | tr -d '\r\n')
+
     PR_BATTERY=$PR_BATTERY."\%"
     PR_CHARGING_STATUS=charged
 
