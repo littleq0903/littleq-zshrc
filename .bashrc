@@ -322,10 +322,6 @@ __build_prompt() {
     local fill_size=$((term_width - total_occupied))
     [[ $fill_size -lt 0 ]] && fill_size=0
 
-    # Debug: uncomment to see values
-    echo "DEBUG: term=$term_width left=$left_size right=$right_size total=$total_occupied fill=$fill_size" >&2
-    echo "DEBUG: user=${#USER}($USER) host=${#short_host}($short_host) tty=${#tty_name}($tty_name) status=${#status_line} path=${#cpath}($cpath)" >&2
-
     # Build fill bar with ─ characters
     local fill=""
     for ((i=0; i<fill_size; i++)); do fill+="${PR_HBAR}"; done
