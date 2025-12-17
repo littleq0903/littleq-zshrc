@@ -33,7 +33,7 @@ __git_info() {
 }
 
 # Git root-relative path
-# Uses powerline git branch icon  (U+E0A0) as prefix
+# Uses powerline git branch icon  (U+E0A0) as leading prefix
 __git_path() {
     local git_root
     git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
@@ -44,9 +44,9 @@ __git_path() {
     rel_path="${rel_path%/}"
 
     if [[ -n "$rel_path" ]]; then
-        echo "${repo_name}/${rel_path}"
+        echo " ${repo_name}/${rel_path}"
     else
-        echo "${repo_name}"
+        echo " ${repo_name}"
     fi
 }
 
