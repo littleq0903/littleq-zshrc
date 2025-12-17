@@ -220,9 +220,14 @@ chpwd() {
 # -----------------------------------------------------------------------------
 # Battery Info
 # -----------------------------------------------------------------------------
+# Battery status icons:
+#   🔋 - Discharging (on battery)
+#   ⚡ - Charging
+#   🔌 - Fully charged / on AC power (not using battery)
 __update_battery_info() {
     PR_BATTERY_INFO=""
     PR_CHARGING_STATUS=""
+    PR_BATTERY_ICON=""
     PR_BATTERY_COLOR=${PR_NO_COLOUR}
     PR_CHARGING_STATUS_COLOR=${PR_NO_COLOUR}
 
@@ -240,18 +245,23 @@ __update_battery_info() {
             if [[ "$batt_output" == *"discharging"* ]]; then
                 PR_CHARGING_STATUS="discharging"
                 PR_CHARGING_STATUS_COLOR=${PR_RED}
+                PR_BATTERY_ICON="🔋"
             elif [[ "$batt_output" == *"charged"* ]]; then
                 PR_CHARGING_STATUS="charged"
                 PR_CHARGING_STATUS_COLOR=${PR_GREEN}
+                PR_BATTERY_ICON="🔌"
             elif [[ "$batt_output" == *"finishing charge"* ]]; then
                 PR_CHARGING_STATUS="finishing"
                 PR_CHARGING_STATUS_COLOR=${PR_YELLOW}
+                PR_BATTERY_ICON="⚡"
             elif [[ "$batt_output" == *"charging"* ]]; then
                 PR_CHARGING_STATUS="charging"
                 PR_CHARGING_STATUS_COLOR=${PR_YELLOW}
+                PR_BATTERY_ICON="⚡"
             elif [[ "$batt_output" == *"AC Power"* ]]; then
                 PR_CHARGING_STATUS="on AC"
                 PR_CHARGING_STATUS_COLOR=${PR_GREEN}
+                PR_BATTERY_ICON="🔌"
             fi
         fi
     elif [[ "$MACHINE_OS" == "ubuntu" ]]; then
@@ -261,9 +271,21 @@ __update_battery_info() {
                 PR_BATTERY_INFO=$(< "$bat_path/capacity")
                 local status=$(< "$bat_path/status" 2>/dev/null)
                 case "$status" in
-                    Full|Charged)    PR_CHARGING_STATUS="charged"; PR_CHARGING_STATUS_COLOR=${PR_GREEN} ;;
-                    Charging)        PR_CHARGING_STATUS="charging"; PR_CHARGING_STATUS_COLOR=${PR_YELLOW} ;;
-                    Discharging)     PR_CHARGING_STATUS="discharging"; PR_CHARGING_STATUS_COLOR=${PR_RED} ;;
+                    Full|Charged)
+                        PR_CHARGING_STATUS="charged"
+                        PR_CHARGING_STATUS_COLOR=${PR_GREEN}
+                        PR_BATTERY_ICON="🔌"
+                        ;;
+                    Charging)
+                        PR_CHARGING_STATUS="charging"
+                        PR_CHARGING_STATUS_COLOR=${PR_YELLOW}
+                        PR_BATTERY_ICON="⚡"
+                        ;;
+                    Discharging)
+                        PR_CHARGING_STATUS="discharging"
+                        PR_CHARGING_STATUS_COLOR=${PR_RED}
+                        PR_BATTERY_ICON="🔋"
+                        ;;
                 esac
                 break
             fi
@@ -273,6 +295,7 @@ __update_battery_info() {
         if [[ -n "$WSL_DISTRO_NAME" ]] && (( $+commands[powershell.exe] )); then
             PR_BATTERY_INFO=$(powershell.exe -Command "(Get-WmiObject Win32_Battery).EstimatedChargeRemaining" 2>/dev/null | tr -d '\r\n')
             PR_CHARGING_STATUS="battery"
+            PR_BATTERY_ICON="🔋"
         fi
     fi
 
@@ -308,7 +331,7 @@ $PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_LLCORNER$PR_LINE_COLOR$PR_HBAR$PR_
 $PR_GREEN$PR_SEPERATOR%(!.$PR_WITH_ROOT_COLOR.$PR_WITHOUT_ROOT_COLOR)%#$PR_PARENTHESE_COLOR)\
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_NO_COLOUR> '
 
-RPROMPT='$PR_PARENTHESE_COLOR($PR_DATETIME_COLOR%D{%c}$PR_NO_COLOUR$PR_SEPERATOR$PR_BATTERY_COLOR$PR_BATTERY_INFO%%$PR_NO_COLOUR$PR_SEPERATOR$PR_CHARGING_STATUS_COLOR$PR_CHARGING_STATUS$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_LRCORNER$PR_LINE_COLOR$PR_SHIFT_OUT$PR_NO_COLOUR'
+RPROMPT='$PR_PARENTHESE_COLOR($PR_DATETIME_COLOR%D{%c}$PR_NO_COLOUR$PR_SEPERATOR$PR_CHARGING_STATUS_COLOR$PR_BATTERY_ICON$PR_BATTERY_COLOR$PR_BATTERY_INFO%%$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_LRCORNER$PR_LINE_COLOR$PR_SHIFT_OUT$PR_NO_COLOUR'
 
 PS2='$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
 $PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
