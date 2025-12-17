@@ -242,6 +242,7 @@ __battery_info() {
 }
 
 # Compact path (git-relative if in repo)
+# Uses powerline git branch icon  (U+E0A0) as prefix when in a git repo
 __compact_path() {
     local git_root
     git_root=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -254,9 +255,9 @@ __compact_path() {
         rel_path="${rel_path%/}"
 
         if [[ -n "$rel_path" ]]; then
-            echo "~${repo_name}/${rel_path}"
+            echo "${repo_name}/${rel_path}"
         else
-            echo "~${repo_name}"
+            echo "${repo_name}"
         fi
     else
         local path="${PWD/#$HOME/~}"

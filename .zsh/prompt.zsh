@@ -157,25 +157,21 @@ precmd() {
     # Calculate terminal width and path truncation
     local TERMWIDTH=${COLUMNS:-80}
 
-    # Get path (git-relative if in repo)
-    local pwdpath
-    pwdpath=$(__compact_path)
-    [[ -z "$pwdpath" ]] && pwdpath="${(%):-%~}"
+    # Get path (git-relative if in repo, with powerline icon prefix)
+    PR_PWD=$(__compact_path)
+    [[ -z "$PR_PWD" ]] && PR_PWD="${(%):-%~}"
 
     # Calculate sizes for fill bar
     # Format: ┌─(user@host>tty|status)─────────────────(path)─┐
     local user_at_host="${(%):-%n@%m}"
     local tty_name="${(%):-%l}"
 
-    # Get actual path that will be displayed (zsh %~ expansion)
-    local display_path="${(%):-%~}"
-
     # Left side: "┌─(" + user@host + ">" + tty + status + ")"
     # Corner and hbar are single-width characters
     local left_size=$((3 + ${#user_at_host} + 1 + ${#tty_name} + ${#STATUS_LINE} + 1))
 
     # Right side: "─(" + path + ")─┐"
-    local right_size=$((2 + ${#display_path} + 3))
+    local right_size=$((2 + ${#PR_PWD} + 3))
 
     local total_occupied=$((left_size + right_size))
 
@@ -183,9 +179,12 @@ precmd() {
     PR_PWDLEN=""
 
     if [[ $total_occupied -gt $TERMWIDTH ]]; then
-        # Path needs truncation
+        # Path needs truncation - truncate PR_PWD from the left
         (( PR_PWDLEN = TERMWIDTH - left_size - 5 ))
         [[ $PR_PWDLEN -lt 10 ]] && PR_PWDLEN=10
+        if [[ ${#PR_PWD} -gt $PR_PWDLEN ]]; then
+            PR_PWD="...${PR_PWD: -$((PR_PWDLEN - 3))}"
+        fi
         PR_FILLBAR=""
     else
         # Calculate fill length
@@ -196,11 +195,7 @@ precmd() {
         for ((i=0; i<fill_len; i++)); do
             PR_FILLBAR+="$PR_HBAR"
         done
-        PR_PWDLEN=""
     fi
-
-    # Store path for prompt
-    PR_PWD="$pwdpath"
 }
 
 preexec() {
@@ -316,15 +311,16 @@ __update_battery_info() {
 # -----------------------------------------------------------------------------
 # Prompt Definition (matching original style)
 # -----------------------------------------------------------------------------
-# Line 1: ┌─(user@host>tty|status)────────────────────(~/path)─┐
+# Line 1: ┌─(user@host>tty|status)────────────────────(repo/path)─┐
+#         Path shows git-relative path with  powerline icon when in a repo
 # Line 2: └─(exitcode|$$|#)─>
-# Right:  (datetime|battery%|status)─┘
+# Right:  (datetime|🔋85%)─┘
 
 PROMPT='$PR_SET_CHARSET${PR_STITLE:-}${(e)PR_TITLEBAR}\
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_ULCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 $PR_BLUE%(!.%SROOT%s.%n)$PR_RED@%m>$PR_YELLOW%l$STATUS_LINE_PR\
 $PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_FILLBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
-$PR_CWD_COLOR%$PR_PWDLEN<...<%~%<<\
+$PR_CWD_COLOR$PR_PWD\
 $PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_URCORNER$PR_SHIFT_OUT
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_LLCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 %(?.$PR_SUCCESS_COLOR.$PR_FAIL_COLOR)%(?..$?${PR_NO_COLOUR}${PR_SEPERATOR})$PR_YELLOW$$\
