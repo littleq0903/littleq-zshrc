@@ -254,8 +254,8 @@ __compact_path() {
         rel_path=$(git rev-parse --show-prefix 2>/dev/null)
         rel_path="${rel_path%/}"
 
-        # Powerline git branch icon: U+E0A0
-        local git_icon=$'\ue0a0'
+        # Powerline git branch icon: U+E0A0 (UTF-8 bytes: EE 82 A0)
+        local git_icon=$'\xee\x82\xa0'
 
         if [[ -n "$rel_path" ]]; then
             echo "${git_icon} ${repo_name}/${rel_path}"
