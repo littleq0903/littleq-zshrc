@@ -446,6 +446,9 @@ if [[ "$MACHINE_OS" == "ubuntu" ]]; then
     }
 fi
 
+# AI Tools
+alias claude='claude --allow-dangerously-skip-permissions'
+
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
